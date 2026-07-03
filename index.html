@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickMove — Intake Manifest</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --ink:#1B2430;
+    --ink-soft:#4A5568;
+    --paper:#FAF9F6;
+    --paper-raised:#FFFFFF;
+    --line:#DDD8CE;
+    --teal:#3E7C59;
+    --teal-soft:#E7F0EA;
+    --amber:#B8791F;
+    --amber-soft:#F7ECD9;
+    --red:#B14444;
+    --red-soft:#F6E4E1;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;background:var(--paper);font-family:'Inter',sans-serif;color:var(--ink);min-height:100vh;}
+  .app{max-width:1100px;margin:0 auto;padding:28px 20px 60px;}
+
+  .masthead{display:flex;align-items:baseline;justify-content:space-between;border-bottom:2px solid var(--ink);padding-bottom:14px;margin-bottom:6px;flex-wrap:wrap;gap:8px;}
+  .masthead h1{font-family:'Archivo',sans-serif;font-weight:800;font-size:26px;letter-spacing:-0.02em;margin:0;}
+  .masthead .tag{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.08em;}
+  .sub{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);margin:8px 0 22px;letter-spacing:0.02em;}
+
+  .tabs{display:flex;gap:0;margin-bottom:20px;border:1.5px solid var(--ink);width:fit-content;border-radius:3px;overflow:hidden;}
+  .tab{padding:9px 20px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;cursor:pointer;background:var(--paper);color:var(--ink);border:none;border-right:1.5px solid var(--ink);}
+  .tab:last-child{border-right:none;}
+  .tab.active{background:var(--ink);color:var(--paper);}
+  .tab:hover:not(.active){background:#EFEBE2;}
+
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* Settings */
+  .settings-box{border:1.5px solid var(--ink);border-radius:6px;padding:14px 16px;margin-bottom:20px;background:var(--paper-raised);}
+  .settings-box.connected{border-color:var(--teal);}
+  .settings-box h3{margin:0 0 8px;font-family:'Archivo',sans-serif;font-size:14px;}
+  .settings-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .settings-row input{flex:1;min-width:220px;padding:8px 10px;border:1.5px solid var(--ink);border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;}
+  .settings-note{font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);margin-top:8px;line-height:1.6;}
+  .conn-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red);margin-right:6px;}
+  .conn-dot.ok{background:var(--teal);}
+
+  .phone-wrap{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;}
+  .phone{width:340px;background:var(--paper-raised);border:1.5px solid var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 6px 0 var(--line);}
+  .phone-head{background:var(--ink);color:var(--paper);padding:14px 16px;font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:0.05em;}
+  .phone-head .num{font-size:14px;font-weight:600;font-family:'Inter',sans-serif;margin-top:2px;}
+  .thread{height:380px;overflow-y:auto;padding:14px;background:#F0EEE7;display:flex;flex-direction:column;gap:8px;}
+  .bubble{max-width:80%;padding:9px 12px;border-radius:10px;font-size:13.5px;line-height:1.4;}
+  .bubble.out{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:2px;}
+  .bubble.in{align-self:flex-start;background:#fff;border:1px solid var(--line);border-bottom-left-radius:2px;}
+  .bubble .meta{display:block;font-family:'IBM Plex Mono',monospace;font-size:9.5px;opacity:0.7;margin-top:4px;}
+  .typing{align-self:flex-start;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);padding:2px 4px;}
+  .composer{display:flex;border-top:1.5px solid var(--ink);}
+  .composer input{flex:1;border:none;padding:12px;font-family:'Inter',sans-serif;font-size:13.5px;background:#fff;}
+  .composer input:focus{outline:none;}
+  .composer button{border:none;background:var(--ink);color:var(--paper);padding:0 18px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;}
+  .composer button:hover{background:var(--teal);}
+  .composer button:disabled{background:var(--line);cursor:not-allowed;}
+  .save-status{font-family:'IBM Plex Mono',monospace;font-size:10.5px;padding:6px 12px;color:var(--ink-soft);}
+  .save-status.err{color:var(--red);font-weight:600;}
+  .save-status.ok{color:var(--teal);}
+
+  .side-notes{flex:1;min-width:260px;}
+  .side-notes h3{font-family:'Archivo',sans-serif;font-size:14px;margin:0 0 10px;}
+  .sample-btn{display:block;width:100%;text-align:left;background:var(--paper-raised);border:1px solid var(--line);border-radius:6px;padding:10px 12px;margin-bottom:8px;font-size:12.5px;font-family:'Inter',sans-serif;cursor:pointer;color:var(--ink);}
+  .sample-btn:hover{border-color:var(--ink);background:var(--teal-soft);}
+  .who-field{margin-bottom:16px;}
+  .who-field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);margin-bottom:5px;}
+  .who-field input{width:100%;padding:8px 10px;border:1.5px solid var(--ink);border-radius:4px;font-family:'Inter',sans-serif;font-size:13px;background:#fff;}
+
+  .tracker-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;}
+  .stat-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .stat{border:1px solid var(--line);border-radius:6px;padding:8px 14px;background:var(--paper-raised);}
+  .stat .n{font-family:'Archivo',sans-serif;font-weight:800;font-size:20px;line-height:1;}
+  .stat .l{font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;color:var(--ink-soft);letter-spacing:0.05em;}
+  .actions{display:flex;gap:8px;}
+  .btn{border:1.5px solid var(--ink);background:var(--paper-raised);padding:8px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:0.03em;text-transform:uppercase;border-radius:4px;cursor:pointer;}
+  .btn:hover{background:var(--ink);color:var(--paper);}
+
+  table{width:100%;border-collapse:collapse;background:var(--paper-raised);border:1px solid var(--ink);font-size:12.5px;}
+  thead th{text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:0.05em;color:var(--ink-soft);padding:9px 10px;border-bottom:1.5px solid var(--ink);background:#F0EEE7;}
+  tbody td{padding:10px;border-bottom:1px solid var(--line);vertical-align:top;font-family:'Inter',sans-serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-soft);}
+  .badge{display:inline-block;padding:3px 8px;border-radius:20px;font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.03em;white-space:nowrap;}
+  .badge.apartments{background:#E4EAF5;color:#2F4E8C;}
+  .badge.movers{background:#EFE4F5;color:#6B3E8C;}
+  .badge.utilities{background:var(--amber-soft);color:var(--amber);}
+  .badge.documentation{background:var(--red-soft);color:var(--red);}
+  .badge.general{background:#EAEAEA;color:#555;}
+  .badge.low{background:#EAEAEA;color:#555;}
+  .badge.medium{background:var(--amber-soft);color:var(--amber);}
+  .badge.high{background:var(--red-soft);color:var(--red);}
+  .status-btn{border:1px solid var(--line);border-radius:4px;padding:4px 9px;font-family:'IBM Plex Mono',monospace;font-size:10px;cursor:pointer;background:#fff;}
+  .status-btn.open{border-color:var(--amber);color:var(--amber);}
+  .status-btn.resolved{border-color:var(--teal);color:var(--teal);background:var(--teal-soft);}
+  .raw{cursor:pointer;color:var(--ink-soft);text-decoration:underline dotted;font-size:11.5px;}
+  .empty{padding:40px 20px;text-align:center;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;font-size:12px;border:1px dashed var(--line);border-radius:6px;}
+  .footnote{margin-top:16px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--ink-soft);line-height:1.6;}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="masthead">
+    <h1>QuickMove — Intake Manifest</h1>
+    <span class="tag">Ops Tool</span>
+  </div>
+  <div class="sub">customer message in → classified &amp; logged to your Google Sheet → ops team acts</div>
+
+  <div class="settings-box" id="settingsBox">
+    <h3><span class="conn-dot" id="connDot"></span>Google Sheet Connection</h3>
+    <div class="settings-row">
+      <input id="scriptUrlInput" type="text" placeholder="Paste your Google Apps Script Web App URL here…" />
+      <button class="btn" id="saveUrlBtn">Save</button>
+      <button class="btn" id="testUrlBtn">Test Connection</button>
+    </div>
+    <div class="settings-note">
+      This URL comes from deploying <b>apps-script.gs</b> to your Google Sheet as a Web App. See the README for setup steps. Saved locally in this browser only — each teammate opening this app for the first time will need to paste it once.
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="chat">Customer Chat</button>
+    <button class="tab" data-tab="tracker">Ops Tracker</button>
+  </div>
+
+  <div class="panel active" id="panel-chat">
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-head">
+          <div>QUICKMOVE SUPPORT</div>
+          <div class="num" id="phoneNumLabel">+91 98xxxxxx12</div>
+        </div>
+        <div class="thread" id="thread"></div>
+        <div class="composer">
+          <input id="msgInput" type="text" placeholder="Type a message…" />
+          <button id="sendBtn">SEND</button>
+        </div>
+        <div class="save-status" id="saveStatus">&nbsp;</div>
+      </div>
+
+      <div class="side-notes">
+        <div class="who-field">
+          <label>Simulated sender name (optional)</label>
+          <input id="senderName" type="text" placeholder="e.g. Priya Menon" />
+        </div>
+        <h3>Try a sample message</h3>
+        <button class="sample-btn" data-sample="Hi, the movers were supposed to come at 10am today for my move to Koramangala but no one has shown up and I can't reach them. My stuff is still in boxes and I have to hand over my old flat by evening.">🚚 "Movers are late, can't reach them, deadline today…"</button>
+        <button class="sample-btn" data-sample="Hi this is Rohan, I moved into my new place in Pune 3 weeks ago and my gas connection still hasn't been transferred. I've called twice, no update.">🔥 "Gas connection still not transferred, 3 weeks…"</button>
+        <button class="sample-btn" data-sample="Can you also help update my address on my HDFC bank account? I forgot to mention this earlier when we spoke about my move.">🏦 "Forgot to mention — also need bank address updated"</button>
+        <button class="sample-btn" data-sample="The apartment listing you sent me for Indiranagar says available but the owner told me it was already rented out last week.">🏠 "Listing says available but owner says it's already rented"</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-tracker">
+    <div class="tracker-head">
+      <div class="stat-row" id="statRow"></div>
+      <div class="actions">
+        <button class="btn" id="refreshBtn">Refresh</button>
+        <button class="btn" id="exportBtn">Export CSV</button>
+      </div>
+    </div>
+    <div id="tableWrap"></div>
+    <div class="footnote">
+      This tracker reads directly from your connected Google Sheet. Anything captured here already lives in your Sheet — export is just a convenience for offline use.
+    </div>
+  </div>
+
+</div>
+
+<script>
+const PILLARS = ["Apartments","Movers & Packers","Utilities","Documentation","General"];
+let cachedRecords = [];
+
+const PILLAR_KEYWORDS = {
+  "Apartments": ["apartment","flat","rent","rental","lease","listing","landlord","owner","property","shortlist","viewing","house"],
+  "Movers & Packers": ["mover","movers","packer","packers","truck","shift","shifting","pickup","pick up","delivery","transport","loading","unloading","boxes","luggage","furniture"],
+  "Utilities": ["electricity","power","gas","water","wifi","wi-fi","internet","broadband","connection","meter","utility","utilities"],
+  "Documentation": ["bank","account","aadhar","aadhaar","pan card","passport","id proof","address change","subscription","kyc","document","documents","paperwork"]
+};
+const HIGH_URGENCY = ["urgent","asap","immediately","today","right now","emergency","can't reach","cannot reach","no one has shown","hasn't shown up","not shown up","deadline","stuck"];
+const MEDIUM_URGENCY = ["this week","tomorrow","soon","still waiting","delay","delayed","follow up","followed up twice"];
+
+function classifyLocallyFallback(text){
+  const lower = text.toLowerCase();
+  let bestPillar = "General", bestScore = 0;
+  for(const [pillar, words] of Object.entries(PILLAR_KEYWORDS)){
+    let score = 0;
+    words.forEach(w=>{ if(lower.includes(w)) score++; });
+    if(score > bestScore){ bestScore = score; bestPillar = pillar; }
+  }
+  let urgency = "Low";
+  if(HIGH_URGENCY.some(w=>lower.includes(w))) urgency = "High";
+  else if(MEDIUM_URGENCY.some(w=>lower.includes(w))) urgency = "Medium";
+
+  const actionMap = {
+    "Apartments": "Check listing status with the property partner and confirm availability with the customer.",
+    "Movers & Packers": "Contact the assigned mover/packer partner to confirm status and relay back to the customer.",
+    "Utilities": "Follow up with the utility provider on application status.",
+    "Documentation": "Verify submission status with the relevant institution.",
+    "General": "Review message and route to the right team member."
+  };
+  const ackMap = {
+    "Apartments": "Thanks for letting us know — we're checking with the property team and will follow up shortly.",
+    "Movers & Packers": urgency === "High"
+      ? "We've flagged this as urgent — someone from our logistics team will reach out to you within the hour."
+      : "Thanks — we're following up with your movers and will update you shortly.",
+    "Utilities": "Got it — we're following up on this with the provider and will update you as soon as we hear back.",
+    "Documentation": "Noted — we'll get this added to your documentation checklist and update you once it's submitted.",
+    "General": "Thanks for reaching out — our team will review this and get back to you shortly."
+  };
+
+  return {
+    customer_name: null,
+    pillar: bestPillar,
+    urgency: urgency,
+    summary: text.length > 90 ? text.slice(0,87) + '…' : text,
+    suggested_action: actionMap[bestPillar],
+    ack_reply: ackMap[bestPillar]
+  };
+}
+
+function getScriptUrl(){ return localStorage.getItem('qm_apps_script_url') || ''; }
+function setScriptUrl(u){ localStorage.setItem('qm_apps_script_url', u); }
+
+async function classifyMessage(text, senderName){
+  try{
+    const resp = await fetch('/api/classify', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ text: text, senderName: senderName || null })
+    });
+    const data = await resp.json();
+    if(data && data.ok && data.result){
+      return { result: data.result, source: 'gemini' };
+    }
+    console.warn('Classify API returned an error, falling back to keywords:', data && data.error);
+    return { result: classifyLocallyFallback(text), source: 'fallback' };
+  }catch(e){
+    console.warn('Classify API unreachable, falling back to keywords:', e.message);
+    return { result: classifyLocallyFallback(text), source: 'fallback' };
+  }
+}
+
+function setConnDot(ok){
+  document.getElementById('connDot').className = 'conn-dot' + (ok ? ' ok' : '');
+  document.getElementById('settingsBox').className = 'settings-box' + (ok ? ' connected' : '');
+}
+
+async function testConnection(silent){
+  const url = getScriptUrl();
+  if(!url){ if(!silent) alert('Paste your Apps Script Web App URL first.'); setConnDot(false); return false; }
+  try{
+    const resp = await fetch(url, {method:'GET'});
+    const data = await resp.json();
+    if(data && data.ok){
+      setConnDot(true);
+      if(!silent) alert('Connected! Found ' + (data.records ? data.records.length : 0) + ' existing record(s) in your Sheet.');
+      return true;
+    }
+    setConnDot(false);
+    if(!silent) alert('Reached the URL but got an unexpected response: ' + JSON.stringify(data));
+    return false;
+  }catch(e){
+    setConnDot(false);
+    if(!silent) alert('Could not connect: ' + e.message + '\\n\\nDouble check the Web App is deployed with access set to "Anyone".');
+    return false;
+  }
+}
+
+document.getElementById('scriptUrlInput').value = getScriptUrl();
+document.getElementById('saveUrlBtn').addEventListener('click', ()=>{
+  setScriptUrl(document.getElementById('scriptUrlInput').value.trim());
+  testConnection(true);
+});
+document.getElementById('testUrlBtn').addEventListener('click', ()=> testConnection(false));
+testConnection(true);
+
+function randPhone(){
+  return "+91 " + Math.floor(70000+Math.random()*29999) + "xxxx" + Math.floor(10+Math.random()*89);
+}
+document.getElementById('phoneNumLabel').textContent = randPhone();
+
+const thread = document.getElementById('thread');
+const msgInput = document.getElementById('msgInput');
+const sendBtn = document.getElementById('sendBtn');
+
+function addBubble(text, dir, timeStr){
+  const b = document.createElement('div');
+  b.className = 'bubble ' + dir;
+  b.innerHTML = escapeHtml(text) + '<span class="meta">' + (timeStr || nowTime()) + '</span>';
+  thread.appendChild(b);
+  thread.scrollTop = thread.scrollHeight;
+  return b;
+}
+function nowTime(){
+  return new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+}
+function escapeHtml(s){
+  const div = document.createElement('div');
+  div.textContent = s;
+  return div.innerHTML;
+}
+
+document.querySelectorAll('.sample-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    msgInput.value = btn.getAttribute('data-sample');
+    msgInput.focus();
+  });
+});
+
+function setSaveStatus(msg, cls){
+  const el = document.getElementById('saveStatus');
+  el.textContent = msg;
+  el.className = 'save-status' + (cls ? ' ' + cls : '');
+}
+
+async function handleSend(){
+  const text = msgInput.value.trim();
+  if(!text) return;
+  const senderName = document.getElementById('senderName').value.trim();
+  msgInput.value = '';
+  sendBtn.disabled = true;
+  setSaveStatus('Logging…');
+
+  addBubble(text, 'out');
+  const typingEl = document.createElement('div');
+  typingEl.className = 'typing';
+  typingEl.textContent = 'QuickMove is reviewing your message…';
+  thread.appendChild(typingEl);
+  thread.scrollTop = thread.scrollHeight;
+
+  await new Promise(r => setTimeout(r, 200)); // small UX pause
+  const { result, source } = await classifyMessage(text, senderName);
+  typingEl.remove();
+  addBubble(result.ack_reply, 'in');
+
+  const record = {
+    id: 'intake_' + Date.now() + '_' + Math.random().toString(36).slice(2,7),
+    ts: new Date().toISOString(),
+    customer: senderName || 'Unknown',
+    pillar: result.pillar,
+    urgency: result.urgency,
+    summary: result.summary,
+    suggested_action: result.suggested_action,
+    raw: text,
+    status: 'Open'
+  };
+
+  const url = getScriptUrl();
+  if(!url){
+    setSaveStatus('⚠ No Google Sheet connected yet — configure it in the Settings box above.', 'err');
+  } else {
+    try{
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type':'text/plain;charset=utf-8'}, // avoids CORS preflight on Apps Script
+        body: JSON.stringify(Object.assign({action:'add'}, record))
+      });
+      const data = await resp.json();
+      if(data && data.ok){
+        setConnDot(true);
+        const sourceTag = source === 'gemini' ? '' : ' [keyword fallback — Gemini unavailable]';
+        setSaveStatus('✓ Saved to your Google Sheet (' + record.pillar + ' / ' + record.urgency + ')' + sourceTag, 'ok');
+      } else {
+        throw new Error(data && data.error ? data.error : 'Unknown error writing to Sheet');
+      }
+    }catch(e){
+      setConnDot(false);
+      setSaveStatus('⚠ Failed to save to Sheet: ' + e.message, 'err');
+    }
+  }
+
+  sendBtn.disabled = false;
+  msgInput.focus();
+}
+
+sendBtn.addEventListener('click', handleSend);
+msgInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') handleSend(); });
+
+function pillarClass(p){
+  const m = {"Apartments":"apartments","Movers & Packers":"movers","Utilities":"utilities","Documentation":"documentation","General":"general"};
+  return m[p] || "general";
+}
+function urgencyClass(u){ return (u||"low").toLowerCase(); }
+
+async function loadRecords(){
+  const url = getScriptUrl();
+  if(!url) return [];
+  try{
+    const resp = await fetch(url, {method:'GET'});
+    const data = await resp.json();
+    if(data && data.ok && data.records){
+      setConnDot(true);
+      return data.records.sort((a,b)=> new Date(b.ts) - new Date(a.ts));
+    }
+    return [];
+  }catch(e){
+    setConnDot(false);
+    console.error('Load error:', e);
+    return [];
+  }
+}
+
+function renderStats(records){
+  const open = records.filter(r=>r.status==='Open').length;
+  const high = records.filter(r=>r.urgency==='High' && r.status==='Open').length;
+  const row = document.getElementById('statRow');
+  row.innerHTML = `
+    <div class="stat"><div class="n">${records.length}</div><div class="l">Total Captured</div></div>
+    <div class="stat"><div class="n">${open}</div><div class="l">Open</div></div>
+    <div class="stat"><div class="n">${high}</div><div class="l">High Urgency &amp; Open</div></div>
+  `;
+}
+
+function renderTable(records){
+  const wrap = document.getElementById('tableWrap');
+  if(!getScriptUrl()){
+    wrap.innerHTML = '<div class="empty">Connect your Google Sheet in the Settings box above to see captured queries here.</div>';
+    return;
+  }
+  if(records.length === 0){
+    wrap.innerHTML = '<div class="empty">No messages captured yet. Send one from the Customer Chat tab.</div>';
+    return;
+  }
+  let rows = records.map(r=>{
+    const t = new Date(r.ts);
+    const timeStr = isNaN(t) ? r.ts : (t.toLocaleDateString([], {day:'2-digit',month:'short'}) + ' ' + t.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}));
+    return `<tr data-id="${r.id}">
+      <td class="mono">${timeStr}</td>
+      <td>${escapeHtml(r.customer)}</td>
+      <td><span class="badge ${pillarClass(r.pillar)}">${r.pillar}</span></td>
+      <td><span class="badge ${urgencyClass(r.urgency)}">${r.urgency}</span></td>
+      <td>${escapeHtml(r.summary)}<br><span class="raw" data-raw="${encodeURIComponent(r.raw)}">view original message</span></td>
+      <td>${escapeHtml(r.suggested_action)}</td>
+      <td><button class="status-btn ${r.status==='Open'?'open':'resolved'}" data-id="${r.id}">${r.status}</button></td>
+    </tr>`;
+  }).join('');
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>Time</th><th>Customer</th><th>Pillar</th><th>Urgency</th><th>Query</th><th>Suggested Action</th><th>Status</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  wrap.querySelectorAll('.status-btn').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const id = btn.getAttribute('data-id');
+      const rec = records.find(r=>r.id===id);
+      if(!rec) return;
+      const newStatus = rec.status === 'Open' ? 'Resolved' : 'Open';
+      btn.disabled = true;
+      try{
+        const url = getScriptUrl();
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type':'text/plain;charset=utf-8'},
+          body: JSON.stringify({action:'updateStatus', id: id, status: newStatus})
+        });
+        const data = await resp.json();
+        if(!data || !data.ok) throw new Error(data && data.error ? data.error : 'update failed');
+        refreshTracker();
+      }catch(e){
+        alert('Could not update status: ' + e.message);
+        btn.disabled = false;
+      }
+    });
+  });
+  wrap.querySelectorAll('.raw').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      alert(decodeURIComponent(el.getAttribute('data-raw')));
+    });
+  });
+}
+
+async function refreshTracker(){
+  const wrap = document.getElementById('tableWrap');
+  wrap.innerHTML = '<div class="empty">Loading…</div>';
+  const records = await loadRecords();
+  cachedRecords = records;
+  renderStats(records);
+  renderTable(records);
+}
+
+document.getElementById('refreshBtn').addEventListener('click', refreshTracker);
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  if(cachedRecords.length === 0){ alert('No records to export yet — click Refresh first.'); return; }
+  const header = ['id','ts','customer','pillar','urgency','summary','suggested_action','raw','status'];
+  const lines = [header.join(',')];
+  cachedRecords.forEach(r=>{
+    const row = header.map(h => '"' + String(r[h]||'').replace(/"/g,'""') + '"');
+    lines.push(row.join(','));
+  });
+  const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'quickmove_intake_export.csv';
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+});
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.getAttribute('data-tab')).classList.add('active');
+    if(tab.getAttribute('data-tab') === 'tracker'){
+      refreshTracker();
+    }
+  });
+});
+
+addBubble("Hi! This is QuickMove Support. Tell us what you need and we'll take it from here.", 'in', nowTime());
+</script>
+</body>
+</html>
