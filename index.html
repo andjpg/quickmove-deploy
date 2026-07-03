@@ -193,18 +193,21 @@ const MEDIUM_URGENCY = ["this week","tomorrow","soon","still waiting","delay","d
 const NON_ACTIONABLE_PATTERNS = [
   /^\s*(hi|hello|hey|hola)[\s!.]*$/i,
   /^\s*(thanks|thank you|thankyou|ty|cool|ok|okay|got it|great)[\s!.]*$/i,
-  /(is this working|are you (there|logging|real)|just checking|just testing|this is a test|test message)/i
+  /(is this working|are you (there|logging|real)|just checking|just testing|this is a test|test message)/i,
+  /how (was|is) your day|how are you\b/i
 ];
 
 function classifyLocallyFallback(text){
   const lower = text.toLowerCase();
-  const actionable = !NON_ACTIONABLE_PATTERNS.some(p => p.test(text)) || lower.split(/\s+/).length > 6;
+  const wordCount = lower.split(/\s+/).filter(Boolean).length;
+  const matchesJunkPattern = NON_ACTIONABLE_PATTERNS.some(p => p.test(text));
   let bestPillar = "General", bestScore = 0;
   for(const [pillar, words] of Object.entries(PILLAR_KEYWORDS)){
     let score = 0;
     words.forEach(w=>{ if(lower.includes(w)) score++; });
     if(score > bestScore){ bestScore = score; bestPillar = pillar; }
   }
+  const actionable = !matchesJunkPattern && !(bestScore === 0 && wordCount <= 6);
   let urgency = "Low";
   if(HIGH_URGENCY.some(w=>lower.includes(w))) urgency = "High";
   else if(MEDIUM_URGENCY.some(w=>lower.includes(w))) urgency = "Medium";
