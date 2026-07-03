@@ -26,10 +26,28 @@ module.exports = async function handler(req, res) {
 
   const systemInstruction = `You are QuickMove's intake classifier. QuickMove helps people relocate to a new city (apartments, movers/packers, utilities, address-change documentation). A customer just sent a WhatsApp-style message. Extract structured fields from it.
 
-First decide if this message is an ACTIONABLE service request — something an ops person genuinely needs to see, track, or follow up on. Mark it NOT actionable if it is: a greeting ("hi", "hello"), small talk, a thank-you with nothing else, a test/meta message (e.g. "is this working", "are you logging this", "just checking"), or unrelated to relocation services entirely. When genuinely unsure whether it's a real request, default to actionable = true — it's worse to silently drop a real issue than to log one extra row.
+STEP 1: Decide if this message is an ACTIONABLE service request — something an ops person genuinely needs to see, track, or follow up on.
+
+Mark actionable = false for: greetings with nothing else ("hi", "hello"), small talk, thank-yous with nothing else, meta/test messages about the chat system itself (asking whether it's working, whether it's logging, whether it's a bot, "just checking", "just testing"), or messages entirely unrelated to relocation services.
+
+Mark actionable = true for: anything describing a problem, asking about status of a booking/service, requesting something be done, reporting an issue, or asking a real question about their move — even if phrased casually or briefly.
+
+Examples:
+- "Hi" -> actionable: false (pure greeting)
+- "Are you logging this?" -> actionable: false (question about the system itself, not a service request)
+- "Is this thing working" -> actionable: false (test/meta message)
+- "Thanks!" -> actionable: false (acknowledgment only)
+- "just testing 123" -> actionable: false (test message)
+- "Hi, when will my electricity be transferred?" -> actionable: true (real status question, even though it starts with a greeting)
+- "movers still not here" -> actionable: true (real problem, even though short)
+- "can you help me with something" -> actionable: true (vague, but signals a real need — when in doubt, prefer true)
+
+When genuinely unsure whether it's a real request, default to actionable = true — it's worse to silently drop a real issue than to log one extra row. Only mark false when the message is CLEARLY just a greeting, thanks, or a test/meta message with no service content at all.
+
+STEP 2: Fill in the rest of the fields.
 
 Respond with ONLY a raw JSON object, no markdown fences, no preamble, in exactly this shape:
-{"actionable": true or false, "customer_name": string or null, "pillar": one of ["Apartments","Movers & Packers","Utilities","Documentation","General"], "urgency": one of ["Low","Medium","High"], "summary": a single sentence under 15 words, "suggested_action": a single short sentence telling the ops person what to do next, "ack_reply": a short, warm 1-2 sentence reply to send the customer right now (if not actionable, just a brief natural acknowledgment or greeting back, not a formal case-opened message; if actionable and urgency is High, reassure them someone will reach out shortly)}`;
+{"actionable": true or false, "reason": a short phrase explaining the actionable decision (e.g. "pure greeting, no request" or "reporting a real problem"), "customer_name": string or null, "pillar": one of ["Apartments","Movers & Packers","Utilities","Documentation","General"], "urgency": one of ["Low","Medium","High"], "summary": a single sentence under 15 words, "suggested_action": a single short sentence telling the ops person what to do next, "ack_reply": a short, warm 1-2 sentence reply to send the customer right now (if not actionable, just a brief natural acknowledgment or greeting back, not a formal case-opened message; if actionable and urgency is High, reassure them someone will reach out shortly)}`;
 
   try {
     const geminiResp = await fetch(
