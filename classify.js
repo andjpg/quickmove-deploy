@@ -26,8 +26,10 @@ module.exports = async function handler(req, res) {
 
   const systemInstruction = `You are QuickMove's intake classifier. QuickMove helps people relocate to a new city (apartments, movers/packers, utilities, address-change documentation). A customer just sent a WhatsApp-style message. Extract structured fields from it.
 
+First decide if this message is an ACTIONABLE service request — something an ops person genuinely needs to see, track, or follow up on. Mark it NOT actionable if it is: a greeting ("hi", "hello"), small talk, a thank-you with nothing else, a test/meta message (e.g. "is this working", "are you logging this", "just checking"), or unrelated to relocation services entirely. When genuinely unsure whether it's a real request, default to actionable = true — it's worse to silently drop a real issue than to log one extra row.
+
 Respond with ONLY a raw JSON object, no markdown fences, no preamble, in exactly this shape:
-{"customer_name": string or null, "pillar": one of ["Apartments","Movers & Packers","Utilities","Documentation","General"], "urgency": one of ["Low","Medium","High"], "summary": a single sentence under 15 words, "suggested_action": a single short sentence telling the ops person what to do next, "ack_reply": a short, warm 1-2 sentence reply to send the customer right now acknowledging their message (do not promise a specific resolution time unless urgency is High, in which case reassure them someone will reach out shortly)}`;
+{"actionable": true or false, "customer_name": string or null, "pillar": one of ["Apartments","Movers & Packers","Utilities","Documentation","General"], "urgency": one of ["Low","Medium","High"], "summary": a single sentence under 15 words, "suggested_action": a single short sentence telling the ops person what to do next, "ack_reply": a short, warm 1-2 sentence reply to send the customer right now (if not actionable, just a brief natural acknowledgment or greeting back, not a formal case-opened message; if actionable and urgency is High, reassure them someone will reach out shortly)}`;
 
   try {
     const geminiResp = await fetch(
@@ -82,6 +84,7 @@ Respond with ONLY a raw JSON object, no markdown fences, no preamble, in exactly
     }
 
     // Guard against unexpected values so the frontend always gets something safe to render.
+    if (typeof parsed.actionable !== "boolean") parsed.actionable = true;
     if (!PILLARS.includes(parsed.pillar)) parsed.pillar = "General";
     if (!URGENCY.includes(parsed.urgency)) parsed.urgency = "Medium";
     if (!parsed.summary) parsed.summary = text.slice(0, 90);
