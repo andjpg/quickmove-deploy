@@ -349,6 +349,7 @@ async function handleSend(){
 
   await new Promise(r => setTimeout(r, 200)); // small UX pause
   const { result, source } = await classifyMessage(text, senderName);
+  console.log('Classification (' + source + '):', result);
   typingEl.remove();
   addBubble(result.ack_reply, 'in');
 
@@ -365,7 +366,9 @@ async function handleSend(){
   };
 
   if(result.actionable === false){
-    setSaveStatus('Not logged — didn\'t look like a service request (just an ack was sent). Was this wrong?');
+    const reasonTag = result.reason ? (' (reason: ' + result.reason + ')') : '';
+    setSaveStatus('Not logged — didn\'t look like a service request' + reasonTag + '. Was this wrong?');
+    console.log('Classification result:', result);
     sendBtn.disabled = false;
     msgInput.focus();
     return;
