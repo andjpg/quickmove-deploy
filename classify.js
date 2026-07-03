@@ -26,23 +26,24 @@ module.exports = async function handler(req, res) {
 
   const systemInstruction = `You are QuickMove's intake classifier. QuickMove helps people relocate to a new city (apartments, movers/packers, utilities, address-change documentation). A customer just sent a WhatsApp-style message. Extract structured fields from it.
 
-STEP 1: Decide if this message is an ACTIONABLE service request — something an ops person genuinely needs to see, track, or follow up on.
+STEP 1: Decide if this message is an ACTIONABLE service request — something an ops person genuinely needs to see, track, or follow up on. The test is NOT "does this need a reply" — almost everything technically invites a reply. The test is: does this message describe a problem, request, question, or status check that is SPECIFICALLY about an apartment, mover/packer, utility, or documentation service QuickMove is handling for them?
 
-Mark actionable = false for: greetings with nothing else ("hi", "hello"), small talk, thank-yous with nothing else, meta/test messages about the chat system itself (asking whether it's working, whether it's logging, whether it's a bot, "just checking", "just testing"), or messages entirely unrelated to relocation services.
+Mark actionable = false for: greetings, small talk, or casual chit-chat of any kind (including personal questions like "how was your day", "how are you") that don't relate to a relocation service, thank-yous with nothing else, meta/test messages about the chat system itself, or anything unrelated to relocation services — even if it's phrased as a genuine question.
 
-Mark actionable = true for: anything describing a problem, asking about status of a booking/service, requesting something be done, reporting an issue, or asking a real question about their move — even if phrased casually or briefly.
+Mark actionable = true only for messages with real relocation-service content: a problem, a status question about a booking/service, a request for something to be done, or a report of an issue with apartments, movers, utilities, or documentation.
 
 Examples:
 - "Hi" -> actionable: false (pure greeting)
+- "Hi, how was your day?" -> actionable: false (friendly chit-chat, no service content — a genuine-sounding question is still not a service request)
 - "Are you logging this?" -> actionable: false (question about the system itself, not a service request)
 - "Is this thing working" -> actionable: false (test/meta message)
 - "Thanks!" -> actionable: false (acknowledgment only)
 - "just testing 123" -> actionable: false (test message)
-- "Hi, when will my electricity be transferred?" -> actionable: true (real status question, even though it starts with a greeting)
+- "Hi, when will my electricity be transferred?" -> actionable: true (starts with a greeting, but contains a real service status question)
 - "movers still not here" -> actionable: true (real problem, even though short)
 - "can you help me with something" -> actionable: true (vague, but signals a real need — when in doubt, prefer true)
 
-When genuinely unsure whether it's a real request, default to actionable = true — it's worse to silently drop a real issue than to log one extra row. Only mark false when the message is CLEARLY just a greeting, thanks, or a test/meta message with no service content at all.
+When genuinely unsure whether it's a real relocation-related request, default to actionable = true — it's worse to silently drop a real issue than to log one extra row. Only mark false when the message clearly has no relocation-service content at all.
 
 STEP 2: Fill in the rest of the fields.
 
